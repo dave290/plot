@@ -1,9 +1,15 @@
-#plot.py
-#plots multiple scans from .kel files
-#Example of 2D plot
-#python plot.py -T 2 -L -200 -H +200 -C 4
-#Example of 3D plot
-#python plot.py -T 3 -L -200 -H +200 -C 4
+#plotseq.py
+#plots multiple scans from kel files, where files contain intensity (k) and velocity (km/s)
+#kel files should be in a subfolder called 'data'
+#-T flag sets a 2D plot or 3D plot
+#-C flag sets the files to skip (for example -C 3 plots every third file)
+#-L sets lower bound for velocity in km/s
+#-H sets upper bound for velocity in km/s
+
+#Example of 2D plot, plotting every fourth file
+#python plotseries.py -T 2 -L -200 -H +200 -C 4
+#Example of 3D plot, plotting every second file
+#python plotseries.py -T 3 -L -200 -H +200 -C 2
 
 import argparse
 parser = argparse.ArgumentParser(description='A test program.')
@@ -21,23 +27,27 @@ import os
 import collections
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
-fig=plt.figure(figsize=(12,6))
+fig=plt.figure(figsize=(10,6))
 
 if flag==2:
     ax=plt.axes()
-    ax.set_title("Intensity vs Velocity")
-    ax.set_xlabel("Velocity (m/s)")
-    ax.set_ylabel("Intensity (K)")
+    ax.set_title("Intensity vs Velocity",fontsize=20)
+    ax.set_xlabel("Velocity (km/s)",fontsize=18)
+    ax.set_ylabel("Intensity (K)",fontsize=18)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
 
 if flag==3:
     ax=plt.axes(projection='3d')
-    ax.set_title("Intensity vs Velocity")
-    ax.set_xlabel("File Number")
-    ax.set_ylabel("Velocity (m/s)")
-    ax.set_zlabel("Intensity (K)")
+    ax.set_title("Intensity vs Velocity",fontsize=16)
+    ax.set_xlabel("Hours",fontsize=12)
+    ax.set_ylabel("Velocity (km/s)",fontsize=12)
+    ax.set_zlabel("Intensity (K)",fontsize=12)
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10)
 
 #read filenames and sort by prefix
-os.chdir('Data')
+os.chdir('data')
 filelist=os.listdir(".")
 filelist.sort()
 
@@ -104,14 +114,14 @@ for i in filelist:
                 GALLON.append(gallon)
                 GALLAT.append(gallat)
                 linestring=line.split()      
-                x=float(linestring[1])
+                x=(float(linestring[1]))/1000.0
                 velocity.append(x)
                 y=float(linestring[2])
                 intensity.append(y)
     f.closed
     True
-    GALLON[0]=GALLON[1];GALLAT[0]=GALLAT[1]
-    velocity[0]=velocity[1];intensity[0]=intensity[1]
+    GALLON.pop(0);GALLAT.pop(0);velocity.pop(0);intensity.pop(0)
+
     temp=filenumber-correction
     if temp==countevery:
         correction=filenumber
@@ -122,12 +132,12 @@ for i in filelist:
         print(GALLAT[0])
         print(" ")
         if flag==2:
-            ax.scatter(velocity,intensity,marker=".",label=("GLONG,GLAT= "+str(GALLON[0])+"  "+str(GALLAT[0])))
+            ax.scatter(velocity,intensity,c="red",s=10,label=("GLONG,GLAT= "+str(int(GALLON[0]))+"  "+str(int(GALLAT[0]))))
             ax.legend(loc="best")
         if flag==3:
-            ax.scatter(filenumber, velocity, intensity, marker=".")
+            hours=24.0*(filenumber/len(filelist))
+            ax.scatter(hours, velocity, intensity, marker=".")
         else:
             continue
-
 plt.show()
 exit()
